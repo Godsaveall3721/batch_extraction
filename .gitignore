@@ -1,3 +1,7 @@
 .clwb/
 bazel-*
+bazel-batch_extraction
+bazel-bin
+bazel-out
+bazel-testlogs
 
