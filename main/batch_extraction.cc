@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 /**
  * 模拟FS树的结构体
@@ -16,6 +17,9 @@ struct Node {
   std::vector<Node> children;
   Node(const std::basic_string<char>& n, bool dir) : name(n), is_dir(dir) {}
 };
+
+// 构造真实路径
+std::basic_string<char> real_path = "./";
 
 /**
  * 执行系统命令并返回输出结果
@@ -133,8 +137,6 @@ void print_tree(const Node& node, const std::basic_string<char>& indent = "") {
  */
 void export_data_helper(const Node& current,
                         const std::basic_string<char>& path) {
-  // 构造真实路径
-  std::basic_string<char> real_path = "/home/x-pc/temp";
   if (!path.empty()) {
     real_path += "/";
     real_path += path;
@@ -189,7 +191,7 @@ void export_data_helper(const Node& current,
         // 返回虚拟 FS 上一级
         hcd("::");
       } else {
-        throw std::runtime_error("这个是个目录但是进不去: " + child.name);
+        throw std::runtime_error("这个是个目录，但是进不去: " + child.name);
       }
     }
   }
@@ -204,9 +206,20 @@ void export_data(const Node& root) {
   export_data_helper(root, "");
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+  std::cout << "提示： 可以通过 --path \"绝对路径\" 来指定导出路径\n" << "如不指定则默认导出到当前目录\n" << std::endl;
+  for (int i = 1; i < argc; ++i) {
+    std::string arg = argv[i];
+    if (arg == "--path" && i + 1 < argc) {
+      real_path = argv[++i];
+    }
+    std::filesystem::path p = std::filesystem::absolute(real_path);
+    std::cout << "接收到导出路径: " << p << std::endl;
+  }
+
   Node root = explore();
   print_tree(root);
   export_data(root);
+  std::cout << "导出成功" << std::endl;
   return 0;
 }
